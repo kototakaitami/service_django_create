@@ -17,8 +17,12 @@
       スタッフ一覧
     </a>
 
-    <a href="{% url 'employees:assignment_list' %}" class="list-group-item list-group-item-action">
-      担当スケジュール
+    <a href="{% url 'employees:calendar' %}" class="list-group-item list-group-item-action">
+      スケジュールカレンダー
+    </a>
+
+    <a href="{% url 'employees:unsubmitted_reports' %}" class="list-group-item list-group-item-action">
+      日報未提出一覧
     </a>
 
     <a href="{% url 'employees:attendance_list' %}" class="list-group-item list-group-item-action">

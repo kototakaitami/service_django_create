@@ -1,0 +1,57 @@
+{% extends "dashboard/base/base.html" %}
+{% block css %}
+{% load static %}
+<style>
+  .action-buttons{
+    width: 150px;
+  }
+  .action-buttons a{
+    margin-right: 5px;
+  }
+</style>
+<link rel="stylesheet" href="{% static 'temp.css' %}">
+{% endblock css %}
+{% block body %}
+<div class="container">
+  <div class="header-container">
+    <h1 class="page-title">シフトパターン（いつも通りのシフト）</h1>
+    <a href="{% url 'employees:pattern_create' %}" class="btn btn-primary">＋ パターン追加</a>
+  </div>
+  <p class="text-secondary">
+    ここで登録した曜日パターンを、カレンダー画面の「シフトパターンから生成」で月単位のスケジュールに展開します。
+    生成後に個別の日を変更・削除しても、再生成で上書きされません（例外が保持されます）。
+  </p>
+
+  <table class="data-table">
+  <tr>
+    <th class="action-buttons">更新/消去</th>
+    <th>曜日</th>
+    <th>従業員</th>
+    <th>利用者</th>
+    <th>時間帯</th>
+    <th>日報担当</th>
+    <th>有効</th>
+  </tr>
+  {% for pattern in patterns %}
+    <tr>
+      <td class="action-buttons">
+        <a href="{% url 'employees:pattern_update' pattern.id %}" class="btn btn-edit">更新</a>
+        <a href="{% url 'employees:pattern_delete' pattern.id %}" class="btn delete-single">消去</a>
+      </td>
+      <td>{{ pattern.get_weekday_display }}</td>
+      <td>{{ pattern.employee }}</td>
+      <td>{{ pattern.user.name }}</td>
+      <td>{% if pattern.start_time %}{{ pattern.start_time|time:"H:i" }}〜{{ pattern.end_time|time:"H:i" }}{% endif %}</td>
+      <td>{% if pattern.is_daily_reporter %}○{% endif %}</td>
+      <td>{% if pattern.is_active %}有効{% else %}停止中{% endif %}</td>
+    </tr>
+  {% empty %}
+  <tr>
+    <td colspan="7" class="no-users">シフトパターンが登録されていません</td>
+  </tr>
+  {% endfor %}
+  </table>
+</div>
+{% endblock %}
+{% block script %}
+{% endblock script %}

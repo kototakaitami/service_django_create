@@ -1,0 +1,17 @@
+{% extends "dashboard/base/base.html" %}
+{% block css %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'temp.css' %}">
+{% endblock %}
+{% block body %}
+<h2>シフトパターンの削除</h2>
+<div class="detail-card">
+  <p>「{{ pattern }}」を削除します。よろしいですか？</p>
+  <p class="text-secondary">生成済みのスケジュールは削除されません（今後の生成対象から外れるだけです）。一時停止したい場合は削除ではなく「有効」のチェックを外してください。</p>
+  <form method="post">
+    {% csrf_token %}
+    <button class="btn btn-danger" type="submit">削除する</button>
+    <a href="{% url 'employees:pattern_list' %}" class="btn btn-secondary">戻る</a>
+  </form>
+</div>
+{% endblock %}

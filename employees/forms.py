@@ -1,7 +1,7 @@
 from django import forms
 from django.forms.utils import ErrorList
 
-from .models import Assignment, Employee
+from .models import Assignment, Employee, ShiftPattern
 
 
 class EmployeeForm(forms.ModelForm):
@@ -60,7 +60,8 @@ class AssignmentForm(forms.ModelForm):
 
     class Meta:
         model = Assignment
-        fields = ['date', 'employee', 'user', 'note']
+        fields = ['date', 'employee', 'user', 'start_time', 'end_time',
+                  'is_daily_reporter', 'note']
         labels = {
             'date': '日付',
             'employee': '従業員',
@@ -69,6 +70,8 @@ class AssignmentForm(forms.ModelForm):
         }
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
+            'start_time': forms.TimeInput(attrs={'type': 'time'}),
+            'end_time': forms.TimeInput(attrs={'type': 'time'}),
         }
 
     def clean(self):
@@ -82,6 +85,45 @@ class AssignmentForm(forms.ModelForm):
                 queryset = queryset.exclude(pk=self.instance.pk)
             if queryset.exists():
                 self._errors['user'] = ErrorList(['同じ日付・従業員・利用者の割当てが既に登録されています'])
+        return cleaned
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['employee'].queryset = Employee.objects.filter(is_active=True)
+        for field_name, field in self.fields.items():
+            self.fields[field_name].widget.attrs['class'] = f'form-control {field_name}'
+            if field.required:
+                self.fields[field_name].widget.attrs['required'] = True
+                self.fields[field_name].widget.attrs['class'] = f'form-control {field_name} required'
+
+
+class ShiftPatternForm(forms.ModelForm):
+    required_css_class = 'required'
+
+    class Meta:
+        model = ShiftPattern
+        fields = ['weekday', 'employee', 'user', 'start_time', 'end_time',
+                  'is_daily_reporter', 'is_active']
+        labels = {
+            'employee': '従業員',
+            'user': '利用者',
+        }
+        widgets = {
+            'start_time': forms.TimeInput(attrs={'type': 'time'}),
+            'end_time': forms.TimeInput(attrs={'type': 'time'}),
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+        employee = cleaned.get('employee')
+        user = cleaned.get('user')
+        weekday = cleaned.get('weekday')
+        if employee and user and weekday is not None:
+            queryset = ShiftPattern.objects.filter(employee=employee, user=user, weekday=weekday)
+            if self.instance and self.instance.pk:
+                queryset = queryset.exclude(pk=self.instance.pk)
+            if queryset.exists():
+                self._errors['weekday'] = ErrorList(['同じ曜日・従業員・利用者のパターンが既に登録されています'])
         return cleaned
 
     def __init__(self, *args, **kwargs):

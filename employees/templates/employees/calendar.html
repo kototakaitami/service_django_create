@@ -1,0 +1,66 @@
+{% extends "dashboard/base/base.html" %}
+{% block css %}
+{% load static %}
+<style>
+  #calendar { max-width: 1000px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 8px; }
+  .calendar-toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .legend { display: flex; gap: 16px; font-size: 0.85rem; color: #555; }
+  .legend span::before { content: '■ '; }
+  .legend .u::before { color: #5b7c99; }
+  .legend .s::before { color: #3a8a5f; }
+</style>
+<link rel="stylesheet" href="{% static 'temp.css' %}">
+{% endblock css %}
+{% block body %}
+<div class="container">
+  <div class="header-container">
+    <h1 class="page-title">スケジュールカレンダー</h1>
+  </div>
+
+  {% include "dashboard/components/messages.html" %}
+
+  <div class="calendar-toolbar">
+    <form method="post" action="{% url 'employees:shift_generate' %}" style="display:flex;gap:6px;align-items:center;">
+      {% csrf_token %}
+      <select name="year" class="form-control" style="width:auto;">
+        <option value="{{ this_year }}">{{ this_year }}年</option>
+        <option value="{{ this_year|add:1 }}">{{ this_year|add:1 }}年</option>
+      </select>
+      <select name="month" class="form-control" style="width:auto;">
+        {% for m in "123456789"|make_list %}<option value="{{ m }}" {% if m == this_month|stringformat:"s" %}selected{% endif %}>{{ m }}月</option>{% endfor %}
+        <option value="10" {% if this_month == 10 %}selected{% endif %}>10月</option>
+        <option value="11" {% if this_month == 11 %}selected{% endif %}>11月</option>
+        <option value="12" {% if this_month == 12 %}selected{% endif %}>12月</option>
+      </select>
+      <button type="submit" class="btn btn-primary">シフトパターンから生成</button>
+    </form>
+    <a href="{% url 'employees:pattern_list' %}" class="btn btn-secondary">シフトパターン管理</a>
+    <a href="{% url 'employees:unsubmitted_reports' %}" class="btn btn-secondary">日報未提出一覧</a>
+    <div class="legend"><span class="u">利用者（終日）</span><span class="s">スタッフ担当（時間帯）</span></div>
+  </div>
+
+  <div id="calendar"></div>
+</div>
+{% endblock %}
+{% block script %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const calendarEl = document.getElementById('calendar');
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    locale: 'ja',
+    height: 'auto',
+    headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
+    buttonText: { today: '今日', month: '月', week: '週' },
+    events: "{% url 'employees:calendar_events' %}",
+    dayMaxEvents: 4,
+    // 日付クリックでその日の担当一覧（例外編集）へ
+    dateClick: function(info) {
+      window.location.href = "{% url 'employees:assignment_list' %}?date=" + info.dateStr;
+    },
+  });
+  calendar.render();
+});
+</script>
+{% endblock script %}

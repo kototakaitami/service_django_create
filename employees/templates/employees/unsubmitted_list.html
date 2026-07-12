@@ -1,0 +1,51 @@
+{% extends "dashboard/base/base.html" %}
+{% block css %}
+{% load static %}
+<style>
+  .date-nav {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+</style>
+<link rel="stylesheet" href="{% static 'temp.css' %}">
+{% endblock css %}
+{% block body %}
+<div class="container">
+  <div class="header-container">
+    <h1 class="page-title">日報 未提出一覧</h1>
+  </div>
+
+  <form method="get" class="date-nav">
+    <label>期間:</label>
+    <input type="date" name="from" value="{{ from_date|date:'Y-m-d' }}" class="form-control" style="width:auto;">
+    〜
+    <input type="date" name="to" value="{{ to_date|date:'Y-m-d' }}" class="form-control" style="width:auto;">
+    <button type="submit" class="btn btn-secondary">表示</button>
+  </form>
+
+  <table class="data-table">
+  <tr>
+    <th>日付</th>
+    <th>日報担当（従業員）</th>
+    <th>利用者</th>
+    <th></th>
+  </tr>
+  {% for a in unsubmitted %}
+    <tr>
+      <td>{{ a.date|date:"Y/m/d（D）" }}</td>
+      <td>{{ a.employee }}</td>
+      <td>{{ a.user.name }}</td>
+      <td><a href="{% url 'diary:create' %}" class="btn btn-edit">代理で書く</a></td>
+    </tr>
+  {% empty %}
+  <tr>
+    <td colspan="4" class="no-users">この期間の未提出はありません 🎉</td>
+  </tr>
+  {% endfor %}
+  </table>
+</div>
+{% endblock %}
+{% block script %}
+{% endblock script %}
